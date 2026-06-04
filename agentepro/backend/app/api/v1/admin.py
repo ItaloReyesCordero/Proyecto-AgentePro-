@@ -456,6 +456,24 @@ async def create_tenant(
     return TenantOut.from_model(tenant)
 
 
+@router.post("/tenants/{tenant_id}/provision-voice")
+async def provision_voice(
+    tenant_id: uuid.UUID, _: AdminGuard, db: DbSession
+) -> dict[str, object]:
+    """Crea (o re-crea) el agente de voz Retell de un negocio existente sin borrar
+    sus datos. Úsalo si el agente de Retell se borró por error o si el negocio pasó
+    a un plan con voz después de crearse (cambiar de plan no re-provisiona)."""
+    tenant = await db.get(Tenant, tenant_id)
+    if tenant is None:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    result = await _provisioner.reprovision_voice(tenant, db)
+    await db.flush()
+    return {
+        "message": f"Voz reconectada para '{tenant.name}'.",
+        **result,
+    }
+
+
 async def _reset_user_password(user: User, db: DbSession) -> PasswordResetResult:
     """Genera una clave nueva al azar para un usuario y marca como resueltas sus
     solicitudes pendientes. No se permite sobre cuentas superadmin."""

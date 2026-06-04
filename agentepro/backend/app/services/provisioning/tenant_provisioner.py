@@ -213,6 +213,103 @@ class TenantProvisioner:
             await db.rollback()
             raise ProvisioningError(str(exc)) from exc
 
+    async def reprovision_voice(
+        self, tenant: Tenant, db: AsyncSession
+    ) -> dict[str, object]:
+        """Crea (o re-crea) el agente de voz Retell de un negocio EXISTENTE y deja
+        listo su número Twilio + webhook de voz. Sirve si el agente de Retell se
+        borró por error, o si el negocio se actualizó a un plan con voz después de
+        crearse (cambiar de plan NO re-provisiona).
+
+        No toca los datos del negocio (conversaciones, contactos, etc.). Devuelve el
+        `retell_agent_id` nuevo y el número usado.
+        """
+        if not plan_has_feature(tenant.plan, FEATURE_VOICE):
+            raise ProvisioningError(
+                "El plan de este negocio no incluye voz. Súbelo a Professional o "
+                "Enterprise antes de reconectar la voz."
+            )
+
+        # AgentConfig y VoiceConfig: se crean si por algún motivo faltan.
+        agent_config = (
+            await db.execute(
+                select(AgentConfig).where(AgentConfig.tenant_id == tenant.id)
+            )
+        ).scalar_one_or_none()
+        if agent_config is None:
+            agent_config = AgentConfig(
+                tenant_id=tenant.id,
+                agent_name="María",
+                welcome_message=(
+                    f"¡Hola! 👋 Soy María, asistente de {tenant.name}. "
+                    "¿En qué puedo ayudarte?"
+                ),
+                faqs=_DEFAULT_FAQS.get(
+                    tenant.business_type.value if hasattr(tenant.business_type, "value") else "services",
+                    _DEFAULT_FAQS["services"],
+                ),
+            )
+            db.add(agent_config)
+            await db.flush()
+
+        voice_config = (
+            await db.execute(
+                select(VoiceConfig).where(VoiceConfig.tenant_id == tenant.id)
+            )
+        ).scalar_one_or_none()
+        if voice_config is None:
+            voice_config = VoiceConfig(
+                tenant_id=tenant.id,
+                agent_name="María",
+                voice_id=settings.RETELL_DEFAULT_VOICE_ID,
+            )
+            db.add(voice_config)
+            await db.flush()
+
+        # 1. Número Twilio: comprar si falta; si ya hay, re-apuntar su webhook de voz
+        #    al backend actual (por si se compró con un FRONTEND_URL viejo).
+        if not tenant.twilio_phone_number:
+            number = twilio_provisioner.provision_phone_number(tenant.slug)
+            tenant.twilio_phone_number = number
+        else:
+            twilio_provisioner.configure_voice_webhook(
+                tenant.twilio_phone_number, tenant.slug
+            )
+
+        # 2. Limpia el agente Retell viejo (best-effort: puede que ya no exista) y
+        #    crea uno nuevo para este negocio.
+        old_agent_id = tenant.retell_agent_id
+        if old_agent_id:
+            await retell_provisioner.rollback_voice_agent(old_agent_id)
+
+        retell_webhook_url = (
+            f"{twilio_provisioner._backend_base()}/webhooks/retell/{tenant.slug}"
+        )
+        agent_id, _llm_id = await retell_provisioner.provision_voice_agent(
+            voice_config, agent_config, webhook_url=retell_webhook_url
+        )
+        if not agent_id:
+            raise ProvisioningError(
+                "Retell no devolvió un agente. Revisa que RETELL_API_KEY esté "
+                "configurada y con saldo."
+            )
+        tenant.retell_agent_id = agent_id
+        voice_config.retell_agent_id = agent_id
+        await db.flush()
+
+        logger.info(
+            "voice_reprovisioned",
+            tenant_id=str(tenant.id),
+            slug=tenant.slug,
+            new_agent=agent_id,
+            old_agent=old_agent_id,
+        )
+        return {
+            "retell_agent_id": agent_id,
+            "twilio_phone_number": tenant.twilio_phone_number,
+            "previous_agent_id": old_agent_id,
+        }
+
     def _create_default_automations(
         self, db: AsyncSession, tenant: Tenant, plan: PlanType
     ) -> None:

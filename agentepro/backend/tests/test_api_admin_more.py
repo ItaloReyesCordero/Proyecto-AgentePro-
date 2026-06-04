@@ -91,6 +91,30 @@ async def test_deactivate_tenant(client: AsyncClient):
     assert r.status_code == 200
 
 
+# --- Reconectar voz ---------------------------------------------------------
+
+
+async def test_provision_voice_tenant_404(client: AsyncClient):
+    r = await client.post(
+        f"{API}/admin/tenants/{uuid.uuid4()}/provision-voice", headers=ADMIN_HEADERS
+    )
+    assert r.status_code == 404
+
+
+async def test_provision_voice_plan_without_voice_rejected(client: AsyncClient):
+    """Un plan sin voz (Inicial/Básico) no puede reconectar la voz."""
+    from tests.helpers import set_plan
+
+    await register(client)
+    tid = await _first_tenant_id(client)
+    await set_plan(tid, "inicial")
+    r = await client.post(
+        f"{API}/admin/tenants/{tid}/provision-voice", headers=ADMIN_HEADERS
+    )
+    assert r.status_code == 500
+    assert "voz" in r.json()["detail"].lower()
+
+
 async def test_create_tenant_manual(client: AsyncClient):
     r = await client.post(
         f"{API}/admin/tenants",

@@ -25,6 +25,7 @@ import {
   LayoutDashboard,
   Activity,
   Phone,
+  PhoneCall,
   MessageSquare,
   Power,
 } from 'lucide-react'
@@ -262,6 +263,20 @@ export function AdminPage() {
       refresh()
     },
     onError: (e) => setNotice(apiErrorMessage(e)),
+  })
+  const provisionVoice = useMutation({
+    mutationFn: async (id: string) =>
+      (await api.post<{ retell_agent_id: string; twilio_phone_number: string | null }>(
+        `/admin/tenants/${id}/provision-voice`,
+      )).data,
+    onSuccess: (data) => {
+      setNotice(
+        `Voz reconectada: agente Retell ${data.retell_agent_id}` +
+          (data.twilio_phone_number ? ` · número ${data.twilio_phone_number}` : ' (sin número Twilio: cómpralo aparte)'),
+      )
+      refresh()
+    },
+    onError: (e) => setNotice(apiErrorMessage(e, 'No se pudo reconectar la voz')),
   })
 
   async function exportTenant(t: Tenant) {
@@ -569,6 +584,26 @@ export function AdminPage() {
                             className="rounded-md border border-border p-1.5 text-text-secondary transition hover:bg-text-primary/5"
                           >
                             <KeyRound className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            title="Reconectar voz (crea un agente de Retell nuevo para este negocio, sin borrar datos)"
+                            onClick={() => {
+                              if (
+                                window.confirm(
+                                  `¿Reconectar la voz de "${t.name}"? Se creará un agente de Retell NUEVO (el anterior se descarta) y se asegura su número Twilio. No borra ningún dato. Requiere plan con voz (Professional/Enterprise).`,
+                                )
+                              ) {
+                                provisionVoice.mutate(t.id)
+                              }
+                            }}
+                            disabled={provisionVoice.isPending}
+                            className="rounded-md border border-border p-1.5 text-text-secondary transition hover:bg-text-primary/5 disabled:opacity-60"
+                          >
+                            {provisionVoice.isPending && provisionVoice.variables === t.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <PhoneCall className="h-3.5 w-3.5" />
+                            )}
                           </button>
                           <button title="Exportar datos" onClick={() => exportTenant(t)} className="rounded-md border border-border p-1.5 text-text-secondary transition hover:bg-text-primary/5">
                             <Download className="h-3.5 w-3.5" />

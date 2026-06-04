@@ -34,6 +34,19 @@ def release_phone_number(number: str) -> None:
         client.release_number(number)
 
 
+def configure_voice_webhook(number: str, tenant_slug: str) -> bool:
+    """Re-apunta el webhook de voz de un número ya comprado al backend actual.
+
+    Útil cuando el número se compró con un `FRONTEND_URL` viejo (p. ej. localhost)
+    o cuando se reconecta la voz de un negocio existente.
+    """
+    client = TwilioClient()
+    if not client.enabled or not number:
+        return False
+    webhook_url = f"{_backend_base()}/webhooks/twilio/voice/{tenant_slug}"
+    return client.configure_voice_webhook(number, webhook_url)
+
+
 def _backend_base() -> str:
     # En producción esto debe apuntar al dominio público del backend.
     return settings.FRONTEND_URL.replace(":5173", ":8000")
