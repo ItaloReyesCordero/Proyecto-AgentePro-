@@ -17,18 +17,20 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("tenants", sa.Column("next_payment_due", sa.DateTime(timezone=True), nullable=True))
-    op.add_column("tenants", sa.Column("last_payment_at", sa.DateTime(timezone=True), nullable=True))
-    op.add_column("tenants", sa.Column("monthly_amount_pen", sa.Integer(), nullable=True))
-    op.add_column(
-        "tenants",
-        sa.Column(
-            "billing_suspended",
-            sa.Boolean(),
-            nullable=False,
-            server_default=sa.false(),
-        ),
-    )
+    # Idempotente: en una base NUEVA, la migración 001 crea las tablas desde el
+    # modelo actual (que ya incluye estas columnas), así que solo agregamos las
+    # que falten. En el flujo incremental original, las agrega todas.
+    bind = op.get_bind()
+    existing = {c["name"] for c in sa.inspect(bind).get_columns("tenants")}
+    cols = [
+        sa.Column("next_payment_due", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("last_payment_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("monthly_amount_pen", sa.Integer(), nullable=True),
+        sa.Column("billing_suspended", sa.Boolean(), nullable=False, server_default=sa.false()),
+    ]
+    for col in cols:
+        if col.name not in existing:
+            op.add_column("tenants", col)
 
 
 def downgrade() -> None:

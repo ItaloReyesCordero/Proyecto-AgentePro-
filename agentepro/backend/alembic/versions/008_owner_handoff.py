@@ -22,24 +22,16 @@ _DEFAULT_MSG = (
 
 
 def upgrade() -> None:
-    op.add_column(
-        "agent_configs",
-        sa.Column(
-            "owner_contacts",
-            sa.JSON(),
-            nullable=False,
-            server_default="[]",
-        ),
-    )
-    op.add_column(
-        "agent_configs",
-        sa.Column(
-            "owner_handoff_message",
-            sa.Text(),
-            nullable=False,
-            server_default=_DEFAULT_MSG,
-        ),
-    )
+    # Idempotente (ver nota en 004): solo agrega las columnas que falten.
+    bind = op.get_bind()
+    existing = {c["name"] for c in sa.inspect(bind).get_columns("agent_configs")}
+    cols = [
+        sa.Column("owner_contacts", sa.JSON(), nullable=False, server_default="[]"),
+        sa.Column("owner_handoff_message", sa.Text(), nullable=False, server_default=_DEFAULT_MSG),
+    ]
+    for col in cols:
+        if col.name not in existing:
+            op.add_column("agent_configs", col)
 
 
 def downgrade() -> None:
