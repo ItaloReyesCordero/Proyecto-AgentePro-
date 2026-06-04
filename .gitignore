@@ -56,3 +56,6 @@ Thumbs.db
 
 # Config local de Claude Code (no versionar)
 .claude/settings.local.json
+
+# Runtime de Celery beat (no versionar)
+celerybeat-schedule*
