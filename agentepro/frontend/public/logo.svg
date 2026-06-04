@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" role="img" aria-label="AgentePro">
+  <defs>
+    <linearGradient id="ap-head" x1="30" y1="40" x2="92" y2="106" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+    <linearGradient id="ap-crown" x1="40" y1="8" x2="80" y2="38" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FCD34D"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Orejas / laterales -->
+  <rect x="15" y="62" width="10" height="22" rx="5" fill="#2563EB"/>
+  <rect x="95" y="62" width="10" height="22" rx="5" fill="#2563EB"/>
+
+  <!-- Cabeza del bot -->
+  <rect x="24" y="40" width="72" height="64" rx="20" fill="url(#ap-head)"/>
+  <rect x="24" y="40" width="72" height="30" rx="20" fill="#ffffff" opacity="0.10"/>
+
+  <!-- Ojos -->
+  <rect x="40" y="60" width="12" height="22" rx="6" fill="#ffffff"/>
+  <rect x="68" y="60" width="12" height="22" rx="6" fill="#ffffff"/>
+  <circle cx="46.5" cy="66" r="2.4" fill="#BFDBFE"/>
+  <circle cx="74.5" cy="66" r="2.4" fill="#BFDBFE"/>
+
+  <!-- Sonrisa -->
+  <path d="M49 91 Q60 98 71 91" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity="0.85"/>
+
+  <!-- Corona -->
+  <path d="M38 37 L33 13 L48 26 L60 9 L72 26 L87 13 L82 37 Z"
+        fill="url(#ap-crown)" stroke="#D97706" stroke-width="1.5" stroke-linejoin="round"/>
+  <rect x="38" y="34" width="44" height="7.5" rx="3.5" fill="url(#ap-crown)" stroke="#D97706" stroke-width="1"/>
+
+  <!-- Gemas -->
+  <circle cx="48" cy="22.5" r="2.6" fill="#34D399"/>
+  <circle cx="60" cy="18" r="3" fill="#F472B6"/>
+  <circle cx="72" cy="22.5" r="2.6" fill="#A78BFA"/>
+
+  <!-- Puntas de la corona -->
+  <circle cx="33" cy="13" r="3.1" fill="#FBBF24" stroke="#D97706" stroke-width="1"/>
+  <circle cx="60" cy="9" r="3.3" fill="#FBBF24" stroke="#D97706" stroke-width="1"/>
+  <circle cx="87" cy="13" r="3.1" fill="#FBBF24" stroke="#D97706" stroke-width="1"/>
+</svg>

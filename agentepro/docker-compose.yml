@@ -1,0 +1,134 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agentepro
+      POSTGRES_PASSWORD: agentepro_dev
+      POSTGRES_DB: agentepro
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentepro"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: ./backend/.env
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: sh -c "alembic upgrade head && uvicorn app.main:socket_app --host 0.0.0.0 --port 8000 --reload"
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: ./backend/.env
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A app.workers.celery_app worker --loglevel=info
+
+  beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: ./backend/.env
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # Planificador: dispara las tareas periódicas (recordatorios de citas cada hora,
+    # reseteo de uso mensual). Sin este proceso, las tareas beat NO se ejecutan.
+    command: celery -A app.workers.celery_app beat --loglevel=info
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    env_file: ./frontend/.env
+    environment:
+      VITE_PROXY_TARGET: http://backend:8000
+    volumes:
+      - ./frontend/src:/app/src
+      # Montamos también public e index.html para que el logo (SVG), el favicon
+      # y el título se sirvan con sus cambios sin reconstruir la imagen.
+      - ./frontend/public:/app/public
+      - ./frontend/index.html:/app/index.html
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    command: npm run dev -- --host
+
+  # Backups automáticos de Postgres. Usa la misma imagen que la BD (trae pg_dump
+  # de la versión correcta). Hace un backup al arrancar y luego cada
+  # BACKUP_INTERVAL_SECONDS. Los archivos quedan en ./backups del host.
+  backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: agentepro
+      PGPASSWORD: agentepro_dev
+      PGDATABASE: agentepro
+      BACKUP_DIR: /backups
+      BACKUP_RETENTION_DAYS: "7"
+      BACKUP_INTERVAL_SECONDS: "86400"
+      # Copia off-site a Supabase Storage (opcional). Se toman del .env de
+      # agentepro/ (o del entorno); si están vacías, la subida se omite sola.
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY:-}
+      SUPABASE_BACKUP_BUCKET: ${SUPABASE_BACKUP_BUCKET:-db-backups}
+      SUPABASE_BACKUP_PREFIX: ${SUPABASE_BACKUP_PREFIX:-agentepro}
+      SUPABASE_BACKUP_KEEP: ${SUPABASE_BACKUP_KEEP:-30}
+    volumes:
+      - ./scripts:/scripts:ro
+      - ./backups:/backups
+    entrypoint: ["/bin/sh", "/scripts/backup_loop.sh"]
+
+volumes:
+  postgres_data:
+  redis_data:

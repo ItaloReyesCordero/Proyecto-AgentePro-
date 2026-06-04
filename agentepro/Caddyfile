@@ -1,0 +1,23 @@
+# Caddy = portero del sistema. Saca y renueva el certificado HTTPS (candado 🔒)
+# AUTOMÁTICAMENTE para tu dominio, y reparte el tráfico:
+#   - /api, /webhooks, /socket.io, /health  -> backend (FastAPI)
+#   - todo lo demás                          -> frontend (la web React)
+#
+# {$DOMAIN} y {$ACME_EMAIL} se leen del archivo .env del despliegue.
+
+{$DOMAIN} {
+	encode gzip zstd
+
+	# Llamadas a la API, webhooks de WhatsApp/voz y el tiempo real (websocket).
+	@backend path /api/* /webhooks/* /socket.io/* /health
+	handle @backend {
+		reverse_proxy backend:8000
+	}
+
+	# El resto: la aplicación web (React).
+	handle {
+		reverse_proxy frontend:80
+	}
+
+	tls {$ACME_EMAIL}
+}

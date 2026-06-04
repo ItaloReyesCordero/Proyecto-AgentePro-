@@ -1,0 +1,132 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# DESPLIEGUE TODO-EN-UNO para un solo VPS.
+# Levanta TODO el sistema en una sola máquina con HTTPS automático:
+#   Caddy (candado 🔒) + Frontend + Backend + Worker + Beat + Postgres + Redis + Backups
+#
+# Uso (en el VPS, dentro de agentepro/):
+#   1) crea el archivo .env (ver GUIA_DESPLIEGUE_PASO_A_PASO.md) con DOMAIN, ACME_EMAIL, POSTGRES_PASSWORD
+#   2) rellena backend/.env (copiado de backend/.env.production)
+#   3) docker compose -f docker-compose.deploy.yml up -d --build
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
+
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: agentepro
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: agentepro
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentepro"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    env_file: ./backend/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: sh -c "alembic upgrade head && uvicorn app.main:socket_app --host 0.0.0.0 --port 8000 --workers 2"
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    env_file: ./backend/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=2
+
+  beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    env_file: ./backend/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A app.workers.celery_app beat --loglevel=info
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+
+  # Copia de seguridad local de la base de datos (extra al de tu proveedor).
+  backup:
+    image: postgres:16-alpine
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: agentepro
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: agentepro
+      BACKUP_DIR: /backups
+      BACKUP_RETENTION_DAYS: "14"
+      BACKUP_INTERVAL_SECONDS: "86400"
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY:-}
+      SUPABASE_BACKUP_BUCKET: ${SUPABASE_BACKUP_BUCKET:-db-backups}
+      SUPABASE_BACKUP_PREFIX: ${SUPABASE_BACKUP_PREFIX:-agentepro}
+      SUPABASE_BACKUP_KEEP: ${SUPABASE_BACKUP_KEEP:-30}
+    volumes:
+      - ./scripts:/scripts:ro
+      - ./backups:/backups
+    entrypoint: ["/bin/sh", "/scripts/backup_loop.sh"]
+
+volumes:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:

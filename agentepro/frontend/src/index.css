@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────────────────────────────────────────────────────────────────────────
+   TEMA basado en variables CSS (canales "R G B" para que funcione la opacidad).
+   :root = modo OSCURO (por defecto). La clase .light en <html> activa el claro.
+   --primary se puede sobrescribir en runtime con el color de marca del cliente
+   (ver lib/theme.ts -> applyTheme).
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --background: 10 15 30;      /* #0A0F1E */
+  --surface: 13 17 23;        /* #0D1117 */
+  --card: 17 24 39;           /* #111827 */
+  --border: 31 41 55;         /* #1F2937 */
+  --primary: 16 185 129;      /* #10B981  (marca, sobrescribible) */
+  --secondary: 59 130 246;    /* #3B82F6 */
+  --warning: 245 158 11;      /* #F59E0B */
+  --text-primary: 249 250 251;/* #F9FAFB */
+  --text-secondary: 156 163 175; /* #9CA3AF */
+  --scrollbar: 31 41 55;
+  color-scheme: dark;
+}
+
+:root.light {
+  --background: 248 250 252;  /* #F8FAFC */
+  --surface: 255 255 255;     /* #FFFFFF */
+  --card: 255 255 255;        /* #FFFFFF */
+  --border: 226 232 240;      /* #E2E8F0 */
+  --secondary: 37 99 235;     /* #2563EB */
+  --warning: 217 119 6;       /* #D97706 */
+  --text-primary: 15 23 42;   /* #0F172A */
+  --text-secondary: 100 116 139; /* #64748B */
+  --scrollbar: 203 213 225;
+  color-scheme: light;
+}
+
+@layer base {
+  html {
+    /* Transición suave al cambiar de tema */
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+
+  body {
+    @apply bg-background text-text-primary font-sans;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Syne', sans-serif;
+  }
+
+  * {
+    @apply border-border;
+  }
+}
+
+@layer components {
+  .input-base {
+    @apply w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20;
+  }
+
+  .card-base {
+    /* Ligera translucidez + blur para que el fondo animado se asome (efecto vidrio) */
+    @apply rounded-2xl border border-border bg-card/90 p-5 backdrop-blur-sm;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 active:scale-[0.98] disabled:opacity-60;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--scrollbar)) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--scrollbar));
+    border-radius: 3px;
+  }
+}

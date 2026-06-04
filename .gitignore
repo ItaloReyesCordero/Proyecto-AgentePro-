@@ -1,0 +1,58 @@
+# ==== SECRETOS (CRÍTICO: nunca subir) ====
+# Cualquier archivo .env en cualquier carpeta queda fuera...
+.env
+.env.*
+*.env
+# ...salvo las plantillas de ejemplo, que SÍ se versionan.
+!.env.example
+!*.env.example
+!**/.env.example
+
+# Claves / certificados sueltos
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.*
+
+# ==== Python ====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage/
+*.db
+*.sqlite
+*.sqlite3
+smoke.db
+dev.db
+
+# ==== Node / Frontend ====
+node_modules/
+dist/
+.vite/
+*.local
+
+# ==== Backups de base de datos ====
+backups/
+*.dump
+
+# ==== Binarios / herramientas grandes ====
+*.exe
+tools/
+
+# ==== Editor / OS ====
+.DS_Store
+.idea/
+.vscode/
+*.log
+Thumbs.db
+
+# Config local de Claude Code (no versionar)
+.claude/settings.local.json

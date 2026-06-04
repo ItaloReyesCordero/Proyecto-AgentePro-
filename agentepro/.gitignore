@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.db
+smoke.db
+
+# Env (incluye .env.production y cualquier .env con secretos)
+.env
+.env.local
+.env.production
+.env.*.local
+backend/.env
+backend/.env.production
+frontend/.env
+# nunca ignorar las plantillas de ejemplo (sí se versionan)
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# Misc
+coverage/
+.coverage
+htmlcov/
+
+# Backups de la base de datos (generados por scripts/backup_db.sh)
+backups/
+*.dump
