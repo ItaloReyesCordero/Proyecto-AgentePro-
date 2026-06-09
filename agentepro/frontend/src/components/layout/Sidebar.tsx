@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   LayoutDashboard,
   MessageSquare,
@@ -42,6 +43,7 @@ const navItems: NavItem[] = [
 export function Sidebar() {
   const { sidebarCollapsed, toggleSidebar } = useUIStore()
   const navigate = useNavigate()
+  const reduce = useReducedMotion()
   const role = useAuthStore((s) => s.user?.role)
   const { data: tenant } = useMyTenant()
 
@@ -61,12 +63,13 @@ export function Sidebar() {
       )}
     >
       {/* Logo */}
-      <div
+      <button
+        type="button"
         className="flex items-center gap-3 px-4 py-5 cursor-pointer select-none"
         onClick={() => navigate('/app')}
       >
         <Logo size={32} showText={!sidebarCollapsed} textClassName="text-lg" />
-      </div>
+      </button>
 
       {/* Nav */}
       <nav className="flex-1 px-2 py-2 space-y-1 overflow-y-auto scrollbar-thin">
@@ -77,24 +80,38 @@ export function Sidebar() {
             end={item.path === '/app'}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group relative',
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 group relative',
                 isActive
-                  ? 'bg-primary/10 text-primary border-l-2 border-primary pl-[10px]'
-                  : 'text-text-secondary hover:bg-text-primary/5 hover:text-text-primary border-l-2 border-transparent',
+                  ? 'text-primary'
+                  : 'text-text-secondary hover:bg-text-primary/5 hover:text-text-primary',
               )
             }
           >
-            <item.icon
-              className={cn(
-                'w-5 h-5 flex-shrink-0',
-                sidebarCollapsed && 'mx-auto',
-              )}
-            />
-            {!sidebarCollapsed && <span>{item.label}</span>}
-            {sidebarCollapsed && (
-              <div className="absolute left-14 bg-card border border-border text-text-primary text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-                {item.label}
-              </div>
+            {({ isActive }) => (
+              <>
+                {/* Resaltado activo que se DESLIZA entre ítems (efecto Linear).
+                    Solo se monta en el activo; framer anima su posición via layoutId. */}
+                {isActive && (
+                  <motion.span
+                    layoutId="sidebar-active"
+                    className="absolute inset-0 -z-10 rounded-lg border-l-2 border-primary bg-primary/10"
+                    transition={
+                      reduce
+                        ? { duration: 0 }
+                        : { type: 'spring', stiffness: 420, damping: 34 }
+                    }
+                  />
+                )}
+                <item.icon
+                  className={cn('w-5 h-5 flex-shrink-0', sidebarCollapsed && 'mx-auto')}
+                />
+                {!sidebarCollapsed && <span>{item.label}</span>}
+                {sidebarCollapsed && (
+                  <div className="absolute left-14 bg-card border border-border text-text-primary text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                    {item.label}
+                  </div>
+                )}
+              </>
             )}
           </NavLink>
         ))}

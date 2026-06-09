@@ -1,6 +1,7 @@
 """Tests de integración de /agent (configuración del asistente IA)."""
 from __future__ import annotations
 
+import pytest
 from httpx import AsyncClient
 
 from tests.helpers import API, register_and_auth
@@ -27,7 +28,7 @@ async def test_patch_config_temperature(client: AsyncClient):
     _, headers, _ = await register_and_auth(client)
     r = await client.patch(f"{API}/agent/config", json={"temperature": 0.3}, headers=headers)
     assert r.status_code == 200
-    assert r.json()["temperature"] == 0.3
+    assert r.json()["temperature"] == pytest.approx(0.3)
 
 
 async def test_update_config_persists(client: AsyncClient):

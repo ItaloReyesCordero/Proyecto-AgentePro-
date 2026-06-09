@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import httpx
@@ -75,7 +75,7 @@ class HubSpotClient:
             props["email"] = email
         if lead_stage:
             props["lifecyclestage"] = _LIFECYCLE_MAP.get(lead_stage, "lead")
-        props["last_interaction_date"] = datetime.utcnow().strftime("%Y-%m-%d")
+        props["last_interaction_date"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
         # Intenta búsqueda por teléfono, luego crea/actualiza.
         search = await self._post(
@@ -125,7 +125,7 @@ class HubSpotClient:
             {
                 "properties": {
                     "hs_note_body": note,
-                    "hs_timestamp": datetime.utcnow().isoformat(),
+                    "hs_timestamp": datetime.now(timezone.utc).isoformat(),
                 }
             },
         )
@@ -145,7 +145,7 @@ class HubSpotClient:
                     "hs_task_subject": title,
                     "hs_task_body": notes or "",
                     "hs_task_status": "NOT_STARTED",
-                    "hs_timestamp": datetime.utcnow().isoformat(),
+                    "hs_timestamp": datetime.now(timezone.utc).isoformat(),
                 }
             },
         )

@@ -16,7 +16,14 @@ NEGRO = RGBColor(0x11, 0x11, 0x11)
 AUTOR = "Italo Eduardo Reyes Cordero"
 CORREO = "italoreyescordero1@gmail.com"
 DNI = "75220834"
+COAUTOR2 = "Jack Joshua Bendezu Lagos"
+DNI2 = "73940475"
+COAUTOR3 = "Dickmar Wilber Julca Laureano"
+DNI3 = "73086197"
+ASESOR = "Maglioni Arana Caparachin"
+UNIVERSIDAD = "Universidad Continental"
 CIUDAD = "Huancayo, Perú"
+FECHA_FIRMA = "Huancayo, 5 de junio de 2026"
 ANIO = "2026"
 
 
@@ -115,7 +122,8 @@ def title_page(doc):
     r = p.add_run("Documento de aseguramiento de la calidad"); r.font.size = Pt(12); r.font.color.rgb = GRIS
     for _ in range(6):
         doc.add_paragraph()
-    for k, v in [("Software", "AgentePro"), ("Autor", AUTOR), ("Año", ANIO),
+    for k, v in [("Software", "AgentePro"), ("Autor principal", AUTOR),
+                 ("Coautores", f"{COAUTOR2}; {COAUTOR3}"), ("Año", ANIO),
                  ("Lugar", CIUDAD), ("Correo", CORREO), ("Versión del documento", "1.0")]:
         p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(f"{k}: "); r.bold = True
@@ -161,7 +169,8 @@ def build(path):
         ("Backend", "Python con FastAPI, SQLAlchemy y Socket.IO"),
         ("Frontend", "TypeScript y React con Vite"),
         ("Base de datos", "PostgreSQL"),
-        ("Autor", AUTOR),
+        ("Autor principal y titular", AUTOR),
+        ("Coautores", f"{COAUTOR2}; {COAUTOR3}"),
     ])
 
     h1(doc, "5. Estrategia y tipos de prueba")
@@ -289,15 +298,18 @@ def build(path):
          "críticos pendientes. El sistema cumple los criterios de salida definidos en este plan y se "
          "considera apto para su despliegue, sujeto a la configuración de las claves de los servicios "
          "externos en el entorno de producción.")
+    para(doc,
+         f"El presente plan fue elaborado por el equipo de desarrollo de AgentePro, estudiantes de la "
+         f"{UNIVERSIDAD}, bajo la asesoría del docente {ASESOR}.")
     doc.add_paragraph()
     doc.add_paragraph()
     p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.add_run("_______________________________").bold = True
     p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.add_run(AUTOR + "\n").bold = True
-    p.add_run("Autor y responsable de calidad\n")
+    p.add_run("Autor principal, titular y responsable de calidad\n")
     p.add_run(f"DNI N.º {DNI}\n")
-    p.add_run(f"{CIUDAD}, {ANIO}")
+    p.add_run(FECHA_FIRMA)
 
     doc.save(path)
     print("OK:", path)

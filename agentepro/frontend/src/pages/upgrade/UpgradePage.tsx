@@ -92,7 +92,7 @@ export function UpgradePage() {
           )}
 
           <a
-            href={`https://wa.me/${waNumber.replace(/[^0-9]/g, '')}`}
+            href={`https://wa.me/${waNumber.replaceAll(/[^0-9]/g, '')}`}
             target="_blank"
             rel="noreferrer"
             className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90"

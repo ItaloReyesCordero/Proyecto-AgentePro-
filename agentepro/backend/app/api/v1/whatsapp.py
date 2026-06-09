@@ -39,12 +39,12 @@ async def connect_whatsapp(
     if not tenant.webhook_verify_token:
         tenant.webhook_verify_token = generate_webhook_verify_token(tenant.slug)
     await db.flush()
-    return await _status(tenant)
+    return _status(tenant)
 
 
 @router.get("/status", response_model=WhatsAppStatus)
 async def whatsapp_status(tenant: CurrentTenant) -> WhatsAppStatus:
-    return await _status(tenant)
+    return _status(tenant)
 
 
 @router.post("/disconnect", response_model=WhatsAppStatus)
@@ -53,10 +53,10 @@ async def disconnect_whatsapp(tenant: CurrentTenant, db: DbSession) -> WhatsAppS
     tenant.waba_id = None
     tenant.whatsapp_access_token = None
     await db.flush()
-    return await _status(tenant)
+    return _status(tenant)
 
 
-async def _status(tenant: CurrentTenant) -> WhatsAppStatus:
+def _status(tenant: CurrentTenant) -> WhatsAppStatus:
     from app.config import settings
 
     backend_base = settings.FRONTEND_URL.replace(":5173", ":8000")

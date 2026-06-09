@@ -1,0 +1,41 @@
+# Contexto de build de Dockerfile.railway (Root Directory: agentepro).
+# Evita que un COPY recursivo arrastre secretos o basura al contexto/imagen.
+# Secretos / configuración local (en cualquier subcarpeta)
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+# Control de versiones
+.git
+.gitignore
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.coverage
+**/.venv/
+**/venv/
+celerybeat-schedule*
+# Node / build del frontend (se reconstruye dentro de la imagen)
+frontend/node_modules
+frontend/dist
+**/node_modules
+# Bases de datos / dumps
+**/*.sqlite
+**/*.sqlite3
+**/*.db
+# Datos de pruebas y reportes
+backend/tests/data/
+.scannerwork/
+# Backups, docs y capturas no van a la imagen
+backups/
+docs/
+*.png
+# IDE / SO / logs
+.vscode/
+.idea/
+**/*.log
+.DS_Store

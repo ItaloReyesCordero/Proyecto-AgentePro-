@@ -39,14 +39,20 @@ RUN uv pip install --system --no-cache \
     "modal>=0.63.0" "resend>=2.0.0" "fal-client>=0.5.0" "tzdata>=2024.1" \
     "aiosqlite>=0.20.0"
 
-# Código del backend
-COPY backend/ /app/
+# Usuario sin privilegios (no-root) por seguridad.
+RUN useradd --create-home --uid 10001 appuser
+
+# Código del backend (propiedad del usuario no-root)
+COPY --chown=appuser:appuser backend/ /app/
 
 # Frontend compilado (lo sirve FastAPI; ver app/main.py -> FRONTEND_DIST_DIR)
-COPY --from=frontend /fe/dist /app/frontend_dist
+COPY --from=frontend --chown=appuser:appuser /fe/dist /app/frontend_dist
 ENV FRONTEND_DIST_DIR=/app/frontend_dist
 
 EXPOSE 8000
+
+# A partir de aquí el contenedor corre como usuario no privilegiado.
+USER appuser
 
 # Railway inyecta $PORT. Migra la base de datos y arranca el servidor ASGI.
 CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:socket_app --host 0.0.0.0 --port ${PORT:-8000}"]

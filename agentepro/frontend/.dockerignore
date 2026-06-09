@@ -1,5 +1,19 @@
+# Evita que un COPY recursivo arrastre secretos o basura al contexto/imagen.
+# Secretos / configuración local
+.env
+.env.*
+*.env
+# Dependencias y build
 node_modules
 dist
-.env.local
-*.log
+.vite/
+# Control de versiones
+.git
+.gitignore
+# Reportes de análisis
+.scannerwork/
+# IDE / SO / logs
 .vscode
+.idea
+*.log
+.DS_Store

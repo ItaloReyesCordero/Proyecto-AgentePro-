@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+
 import httpx
 
 from app.utils.logger import get_logger
@@ -37,7 +39,11 @@ class TwilioWhatsAppClient:
                 resp.raise_for_status()
 
     async def mark_as_read(self, *_args, **_kwargs) -> None:  # noqa: D401 (no-op)
+        # Twilio auto-marca como leído; no-op async para igualar la interfaz de Meta.
+        await asyncio.sleep(0)
         return None
 
     async def send_typing_indicator(self, *_args, **_kwargs) -> None:  # noqa: D401 (no-op)
+        # Twilio no soporta indicador de escritura; no-op async para igualar la interfaz.
+        await asyncio.sleep(0)
         return None

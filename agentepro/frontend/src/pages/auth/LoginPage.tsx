@@ -60,8 +60,9 @@ export function LoginPage() {
             </div>
           )}
           <div>
-            <label className="mb-1 block text-sm font-medium text-text-secondary">Email</label>
+            <label htmlFor="login-email" className="mb-1 block text-sm font-medium text-text-secondary">Email</label>
             <input
+              id="login-email"
               type="email"
               required
               value={email}
@@ -72,12 +73,13 @@ export function LoginPage() {
           </div>
           <div>
             <div className="mb-1 flex items-center justify-between">
-              <label className="block text-sm font-medium text-text-secondary">Contraseña</label>
+              <label htmlFor="login-password" className="block text-sm font-medium text-text-secondary">Contraseña</label>
               <Link to="/forgot-password" className="text-xs text-primary hover:underline">
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
             <PasswordInput
+              id="login-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}

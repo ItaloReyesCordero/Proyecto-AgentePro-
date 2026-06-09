@@ -58,6 +58,31 @@ python_version = "3.13"
 strict = true
 ignore_missing_imports = true
 
+[tool.coverage.run]
+# Rutas relativas en el reporte para que SonarQube (escaneando desde la raíz del
+# repo) resuelva los archivos: el coverage se GENERA DESDE LA RAÍZ (ver comando en
+# sonar-project.properties), así los nombres quedan como agentepro/backend/app/...
+# Los patrones de omit usan */ para ser independientes del directorio de ejecución.
+relative_files = true
+omit = [
+    "agentepro/backend/tests/*",
+    "agentepro/backend/app/workers/*",
+    "agentepro/backend/app/modal_tasks/*",
+    "agentepro/backend/app/main.py",
+    "agentepro/backend/app/core/socket.py",
+    # Adaptadores de APIs externas (glue de integración: solo llaman al SDK/HTTP
+    # de un tercero). Se prueban por integración, no por unidad.
+    "agentepro/backend/app/services/whatsapp/client.py",
+    "agentepro/backend/app/services/whatsapp/twilio_whatsapp_client.py",
+    "agentepro/backend/app/services/voice/twilio_client.py",
+    "agentepro/backend/app/services/voice/retell_client.py",
+    "agentepro/backend/app/services/notion/notion_client.py",
+    "agentepro/backend/app/services/instagram/client.py",
+    "agentepro/backend/app/services/instagram/scheduler.py",
+    "agentepro/backend/app/services/crm/*",          # sincronización HubSpot (adaptadores)
+    "agentepro/backend/app/services/provisioning/*", # alta en Retell/Twilio/HubSpot (onboarding)
+]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]

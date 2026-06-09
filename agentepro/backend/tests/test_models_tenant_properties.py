@@ -58,7 +58,7 @@ def test_paid_plan_never_trial_expired(plan):
 
 def test_trial_expired_handles_naive_datetime():
     # trial_ends_at sin tzinfo se asume UTC.
-    t = _tenant(plan=PlanType.TRIAL, trial_ends_at=datetime.utcnow() - timedelta(days=2))
+    t = _tenant(plan=PlanType.TRIAL, trial_ends_at=datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=2))
     assert t.is_trial_expired is True
 
 

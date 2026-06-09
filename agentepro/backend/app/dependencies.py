@@ -94,7 +94,7 @@ def require_feature(feature: str):
         router = APIRouter(..., dependencies=[Depends(require_feature(FEATURE_VOICE))])
     """
 
-    async def _guard(tenant: CurrentTenant) -> Tenant:
+    def _guard(tenant: CurrentTenant) -> Tenant:
         if not plan_has_feature(tenant.plan, feature):
             raise FeatureNotInPlanError(feature)
         return tenant

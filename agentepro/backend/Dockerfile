@@ -22,9 +22,15 @@ RUN uv pip install --system --no-cache \
     "modal>=0.63.0" "resend>=2.0.0" "fal-client>=0.5.0" "tzdata>=2024.1" \
     "aiosqlite>=0.20.0" "pytest>=8.2.0" "pytest-asyncio>=0.23.0" "pytest-cov>=5.0.0"
 
-# Copia el código
-COPY . .
+# Usuario sin privilegios (no-root) por seguridad.
+RUN useradd --create-home --uid 10001 appuser
+
+# Copia el código asignando la propiedad al usuario no-root.
+COPY --chown=appuser:appuser . .
 
 EXPOSE 8000
+
+# A partir de aquí el contenedor corre como usuario no privilegiado.
+USER appuser
 
 CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:socket_app --host 0.0.0.0 --port ${PORT:-8000}"]

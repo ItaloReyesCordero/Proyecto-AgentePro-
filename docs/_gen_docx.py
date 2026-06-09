@@ -21,7 +21,18 @@ CORREO = "italoreyescordero1@gmail.com"
 DNI = "75220834"
 DOMICILIO = "Jr. Grau N.º 419, distrito de Jauja, provincia de Jauja, departamento de Junín"
 TELEFONO = "916085873"
+
+# Coautores (estudiantes de la Universidad Continental) y docente asesor
+COAUTOR2 = "Jack Joshua Bendezu Lagos"
+DNI2 = "73940475"
+COAUTOR3 = "Dickmar Wilber Julca Laureano"
+DNI3 = "73086197"
+ASESOR = "Maglioni Arana Caparachin"
+DNI_ASESOR = "20038141"
+UNIVERSIDAD = "Universidad Continental"
+
 CIUDAD = "Huancayo, Perú"
+FECHA_FIRMA = "Huancayo, 5 de junio de 2026"
 ANIO = "2026"
 
 
@@ -82,7 +93,10 @@ def add_title_page(doc, titulo, subtitulo):
         doc.add_paragraph()
 
     datos = [
-        ("Autor y titular", AUTOR),
+        ("Autor principal y titular", AUTOR),
+        ("Coautores", f"{COAUTOR2}; {COAUTOR3}"),
+        ("Docente asesor", ASESOR),
+        ("Institución", UNIVERSIDAD),
         ("Tipo de obra", "Programa de ordenador (software)"),
         ("Año de creación", ANIO),
         ("Lugar", CIUDAD),
@@ -185,9 +199,24 @@ def memoria_descriptiva(path):
         ("Lenguajes de programación", "Python, TypeScript, JavaScript y SQL"),
     ])
 
-    h1(doc, "3. Datos del autor y titular")
+    h1(doc, "3. Autoría, datos del autor y titular")
+    para(doc,
+         f"AgentePro es una obra de software desarrollada en colaboración por estudiantes de la "
+         f"{UNIVERSIDAD}, bajo la asesoría del docente {ASESOR}. La autoría principal y la titularidad "
+         f"de los derechos patrimoniales corresponden a {AUTOR}, quien concibió, dirigió y programó la "
+         f"mayor parte de la obra. Participaron como coautores, con aportes complementarios, los "
+         f"estudiantes {COAUTOR2} y {COAUTOR3}.")
     kv_table(doc, [
-        ("Autor", AUTOR),
+        ("Autor principal y titular", f"{AUTOR} — DNI N.º {DNI}"),
+        ("Coautor", f"{COAUTOR2} — DNI N.º {DNI2} (estudiante de la {UNIVERSIDAD})"),
+        ("Coautor", f"{COAUTOR3} — DNI N.º {DNI3} (estudiante de la {UNIVERSIDAD})"),
+        ("Docente asesor", f"{ASESOR} — DNI N.º {DNI_ASESOR} (no es autor de la obra)"),
+    ], headers=("Rol", "Identificación"))
+    para(doc,
+         "Los coautores han cedido sus derechos patrimoniales a favor del autor principal, de modo que "
+         "la titularidad de dichos derechos recae de forma única y exclusiva en este último, "
+         "conservando cada coautor sus derechos morales.")
+    kv_table(doc, [
         ("Titular de los derechos patrimoniales", AUTOR),
         ("Nacionalidad", "Peruana"),
         ("Documento de identidad", f"DNI N.º {DNI}"),
@@ -284,7 +313,7 @@ def memoria_descriptiva(path):
         ("Base de datos", "PostgreSQL; lenguaje SQL; migraciones con Alembic."),
         ("Infraestructura", "Docker y Docker Compose; servidor web Caddy con HTTPS automático; "
                             "memoria caché con Redis."),
-        ("Inteligencia artificial", "Modelos de lenguaje de gran tamaño (Claude, de Anthropic) "
+        ("Inteligencia artificial", "Modelos de lenguaje de gran tamaño de Anthropic, "
                                     "orquestados por el sistema."),
     ], headers=("Capa", "Lenguajes y tecnologías"))
 
@@ -310,7 +339,7 @@ def memoria_descriptiva(path):
          "orquestación de un motor de inteligencia artificial para responder, calificar y dar "
          "seguimiento a los clientes de cada negocio de forma autónoma. La selección, disposición y "
          "organización de estos componentes, así como el código fuente que los implementa, "
-         "constituyen una creación intelectual propia del autor.")
+         "constituyen una creación intelectual propia de los autores.")
 
     h1(doc, "11. Magnitud de la obra")
     kv_table(doc, [
@@ -322,21 +351,33 @@ def memoria_descriptiva(path):
 
     h1(doc, "12. Declaración")
     para(doc,
-         f"El autor, {AUTOR}, declara que la obra descrita en el presente documento es de su "
-         "autoría, original e individual, y que no infringe derechos de terceros. El derecho de "
-         "autor sobre la obra nace con su creación; el registro ante INDECOPI tiene por objeto "
-         "constituir un medio de prueba de la titularidad y de la fecha cierta de la creación.")
+         f"Los autores declaran que la obra descrita en el presente documento es de su autoría, "
+         f"original, y que no infringe derechos de terceros. El autor principal, {AUTOR}, es el titular "
+         f"de los derechos patrimoniales de la obra. El derecho de autor sobre la obra nace con su "
+         f"creación; el registro ante INDECOPI tiene por objeto constituir un medio de prueba de la "
+         f"titularidad y de la fecha cierta de la creación.")
     doc.add_paragraph()
     doc.add_paragraph()
+    firmantes = [
+        (AUTOR, "Autor principal y titular de los derechos", DNI),
+        (COAUTOR2, "Coautor", DNI2),
+        (COAUTOR3, "Coautor", DNI3),
+    ]
+    for nombre, cargo, dni in firmantes:
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.add_run("_______________________________\n").bold = True
+        p2 = doc.add_paragraph()
+        p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p2.add_run(nombre + "\n").bold = True
+        p2.add_run(cargo + "\n")
+        p2.add_run(f"DNI N.º {dni}")
+        doc.add_paragraph()
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.add_run("_______________________________\n").bold = True
-    p2 = doc.add_paragraph()
-    p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p2.add_run(AUTOR + "\n").bold = True
-    p2.add_run("Autor y titular de los derechos\n")
-    p2.add_run(f"DNI N.º {DNI}\n")
-    p2.add_run(f"{CIUDAD}, {ANIO}")
+    r = p.add_run(FECHA_FIRMA)
+    r.italic = True
+    r.font.color.rgb = GRIS
 
     doc.save(path)
     print("OK:", path)
@@ -498,6 +539,12 @@ def manual_usuario(path):
     para(doc,
          f"Para consultas sobre la plataforma, el contacto es {AUTOR}, a través del correo "
          f"{CORREO}.")
+
+    h1(doc, "12. Créditos")
+    para(doc,
+         f"AgentePro fue desarrollado en colaboración por estudiantes de la {UNIVERSIDAD} —"
+         f"{AUTOR} (autor principal y titular), {COAUTOR2} y {COAUTOR3} (coautores)— bajo la asesoría "
+         f"del docente {ASESOR}.")
 
     doc.save(path)
     print("OK:", path)

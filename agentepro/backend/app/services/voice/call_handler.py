@@ -159,4 +159,4 @@ async def process_retell_event(db: AsyncSession, tenant: Tenant, event: RetellCa
     if handler:
         await handler(db, tenant, event)
     else:
-        logger.info("retell_event_ignored", event=event.event)
+        logger.info("retell_event_ignored", event_type=event.event)

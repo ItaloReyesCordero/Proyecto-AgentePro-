@@ -22,7 +22,7 @@ export const useUIStore = create<UIState>((set) => ({
     set((state) => ({
       toasts: [
         ...state.toasts,
-        { ...toast, id: Math.random().toString(36).slice(2) },
+        { ...toast, id: crypto.randomUUID() },
       ],
     })),
   removeToast: (id) =>

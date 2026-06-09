@@ -103,7 +103,9 @@ function CallDetail({ callId }: { callId: string }) {
       </div>
 
       {call.recording_url && (
-        <audio controls src={call.recording_url} className="mb-4 w-full" />
+        <audio controls src={call.recording_url} className="mb-4 w-full">
+          <track kind="captions" />
+        </audio>
       )}
 
       {call.summary && (

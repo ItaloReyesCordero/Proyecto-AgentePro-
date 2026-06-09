@@ -34,10 +34,38 @@ const config: Config = {
         shimmer: {
           '100%': { transform: 'translateX(100%)' },
         },
+        /* ── Reflejo del marco de vidrio del celular (.glass-phone) ── */
+        'shimmer-glass': {
+          '0%':   { transform: 'translateX(-100%) rotate(-45deg)' },
+          '100%': { transform: 'translateX(200%) rotate(-45deg)' },
+        },
+        /* ── Onda de voz (pantalla de llamada de la demo) ── */
+        'voice-bar-1': {
+          '0%, 100%': { height: '8px' },
+          '25%': { height: '28px' },
+          '50%': { height: '14px' },
+          '75%': { height: '32px' },
+        },
+        'voice-bar-2': {
+          '0%, 100%': { height: '12px' },
+          '30%': { height: '34px' },
+          '60%': { height: '10px' },
+          '85%': { height: '24px' },
+        },
+        'voice-bar-3': {
+          '0%, 100%': { height: '6px' },
+          '20%': { height: '22px' },
+          '45%': { height: '36px' },
+          '70%': { height: '16px' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.3s ease-out',
         shimmer: 'shimmer 1.6s infinite',
+        'shimmer-glass': 'shimmer-glass 4s ease-in-out infinite',
+        'voice-bar-1': 'voice-bar-1 1.1s ease-in-out infinite',
+        'voice-bar-2': 'voice-bar-2 0.9s ease-in-out infinite',
+        'voice-bar-3': 'voice-bar-3 1.3s ease-in-out infinite',
       },
     },
   },

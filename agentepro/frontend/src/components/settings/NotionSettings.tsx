@@ -78,8 +78,7 @@ export function NotionSettings() {
           className="text-primary underline"
         >
           notion.so/my-integrations
-        </a>
-        , comparte la base con ella, y pega aquí el token y el ID de la base.
+        </a>, comparte la base con ella, y pega aquí el token y el ID de la base.
       </p>
 
       {isLoading ? (
@@ -124,8 +123,9 @@ export function NotionSettings() {
       ) : (
         <div className="space-y-3">
           <div>
-            <label className="mb-1 block text-sm font-medium text-text-secondary">Token de integración (Notion)</label>
+            <label htmlFor="notion-api-key" className="mb-1 block text-sm font-medium text-text-secondary">Token de integración (Notion)</label>
             <input
+              id="notion-api-key"
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
@@ -134,8 +134,9 @@ export function NotionSettings() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-text-secondary">ID o enlace de la base de datos</label>
+            <label htmlFor="notion-database-id" className="mb-1 block text-sm font-medium text-text-secondary">ID o enlace de la base de datos</label>
             <input
+              id="notion-database-id"
               type="text"
               value={databaseId}
               onChange={(e) => setDatabaseId(e.target.value)}

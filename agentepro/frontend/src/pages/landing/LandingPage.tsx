@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
   MessageSquare,
   Phone,
@@ -21,9 +21,15 @@ import {
   Signal,
   Wifi,
   BatteryFull,
+  Sun,
+  Moon,
+  CalendarCheck,
+  TrendingUp,
 } from 'lucide-react'
 import { useAuthStore } from '../../stores/auth.store'
+import { useThemeStore } from '../../stores/theme.store'
 import { Logo } from '../../components/ui/Logo'
+import { ParticleField } from '../../components/landing/ParticleField'
 
 const FEATURES = [
   { icon: MessageSquare, title: 'Agente WhatsApp IA', desc: 'Responde 24/7, califica leads y agenda citas automáticamente.' },
@@ -103,19 +109,25 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen text-text-primary">
+      {/* Río de partículas (constelación) fluyendo de izquierda a derecha.
+          Va por DELANTE del fondo opaco global (AnimatedBackground, -z-10) y por
+          DETRÁS del contenido, por eso -z-[5] (no -z-20, que lo tapaba). */}
+      <ParticleField className="fixed inset-0 -z-[5] h-full w-full opacity-80" />
+
       {/* Nav */}
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <Logo size={36} showText textClassName="text-xl" />
-          <nav className="flex items-center gap-4">
-            <a href="#como-funciona" className="hidden text-sm text-text-secondary hover:text-text-primary sm:block">Cómo funciona</a>
-            <a href="#planes" className="text-sm text-text-secondary hover:text-text-primary">Planes</a>
+          <nav className="flex items-center gap-3 sm:gap-4">
+            <a href="#como-funciona" className="hidden text-sm text-text-secondary transition hover:text-text-primary sm:block">Cómo funciona</a>
+            <a href="#planes" className="hidden text-sm text-text-secondary transition hover:text-text-primary sm:block">Planes</a>
+            <ThemeToggle />
             {token ? (
-              <Link to="/app" className="btn-primary">Ir al dashboard</Link>
+              <Link to="/app" className="btn-gradient">Ir al dashboard</Link>
             ) : (
               <>
-                <Link to="/login" className="hidden text-sm text-text-secondary hover:text-text-primary sm:block">Iniciar sesión</Link>
-                <Link to="/register" className="btn-primary">Empezar gratis</Link>
+                <Link to="/login" className="hidden text-sm text-text-secondary transition hover:text-text-primary sm:block">Iniciar sesión</Link>
+                <Link to="/register" className="btn-gradient">Empezar gratis</Link>
               </>
             )}
           </nav>
@@ -124,27 +136,31 @@ export function LandingPage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
+        {/* Textura sutil de puntos sobre la aurora global */}
+        <div aria-hidden className="dot-grid pointer-events-none absolute inset-0 -z-[5] opacity-60" />
+
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 pt-16 pb-12 lg:grid-cols-2 lg:pt-24">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               <Sparkles className="h-3.5 w-3.5" /> IA para negocios peruanos 🇵🇪
             </span>
-            <h1 className="mt-6 font-heading text-4xl font-bold leading-[1.1] md:text-5xl lg:text-6xl">
-              Tu negocio atendiendo clientes <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">24/7 con IA</span>
+            <h1 className="mt-6 font-heading text-5xl font-extrabold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
+              Atiende solo.{' '}
+              <span className="text-gradient-primary">Vende más.</span> 🚀
             </h1>
             <p className="mt-5 max-w-xl text-lg text-text-secondary">
-              WhatsApp, llamadas, Instagram y CRM — todo automatizado.
-              Configúralo en minutos y deja que tu agente venda mientras tú duermes.
+              Tu agente IA contesta WhatsApp, llamadas e Instagram, registra todo en tu CRM
+              y agenda citas — <span className="font-semibold text-text-primary">24/7, sin que muevas un dedo.</span>
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link to="/register" className="btn-primary px-6 py-3 text-base">
+              <Link to="/register" className="btn-gradient px-6 py-3 text-base">
                 Empezar gratis <ArrowRight className="h-4 w-4" />
               </Link>
-              <a href="#planes" className="rounded-lg border border-border px-6 py-3 text-sm font-semibold hover:bg-text-primary/5">
+              <a href="#planes" className="rounded-xl border border-border px-6 py-3 text-sm font-semibold transition hover:border-primary/50 hover:bg-text-primary/5">
                 Ver planes
               </a>
             </div>
@@ -158,20 +174,22 @@ export function LandingPage() {
             </div>
           </motion.div>
 
-          {/* Demo de chat animada */}
+          {/* Demo en celular con halo aurora + chips flotantes */}
           <motion.div
             initial={{ opacity: 0, scale: 0.92, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
-            className="flex justify-center lg:justify-end"
+            className="relative flex justify-center lg:justify-end"
           >
+            <div aria-hidden className="aurora-halo absolute left-1/2 top-1/2 -z-10 h-[120%] w-[120%] -translate-x-1/2 -translate-y-1/2" />
+            <FloatingChips />
             <PhoneDemo />
           </motion.div>
         </div>
 
         {/* Badges de confianza */}
         <div className="mx-auto max-w-6xl px-6 pb-8">
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 rounded-2xl border border-border bg-card/60 px-6 py-4 backdrop-blur-sm">
+          <div className="glass-card flex flex-wrap items-center justify-center gap-x-8 gap-y-3 px-6 py-4">
             {BADGES.map((b) => (
               <div key={b.label} className="flex items-center gap-2 text-sm text-text-secondary">
                 <b.icon className="h-4 w-4 text-primary" />
@@ -185,21 +203,28 @@ export function LandingPage() {
       {/* Stats */}
       <section className="mx-auto max-w-6xl px-6 py-12">
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-          {STATS.map((s) => (
-            <div key={s.label} className="text-center">
-              <div className="font-heading text-3xl font-bold text-primary md:text-4xl">{s.value}</div>
+          {STATS.map((s, i) => (
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.06 }}
+              className="text-center"
+            >
+              <div className="font-heading text-4xl font-extrabold text-gradient-primary md:text-5xl">{s.value}</div>
               <div className="mt-1 text-sm text-text-secondary">{s.label}</div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>
 
       {/* Features */}
       <section className="mx-auto max-w-6xl px-6 py-12">
-        <h2 className="text-center font-heading text-3xl font-bold">Todo lo que tu negocio necesita</h2>
-        <p className="mx-auto mt-2 max-w-xl text-center text-text-secondary">
-          Una sola plataforma reemplaza al recepcionista, al community manager y al vendedor que nunca duerme.
-        </p>
+        <SectionHeading
+          title="Todo lo que tu negocio necesita"
+          subtitle="Una sola plataforma reemplaza al recepcionista, al community manager y al vendedor que nunca duerme."
+        />
         <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
           {FEATURES.map((f, i) => (
             <motion.div
@@ -209,12 +234,12 @@ export function LandingPage() {
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.4, delay: i * 0.05 }}
               whileHover={{ y: -4 }}
-              className="card-base transition-shadow hover:shadow-xl hover:shadow-primary/5"
+              className="glass-card"
             >
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/25 to-secondary/20 text-primary">
                 <f.icon className="h-5 w-5" />
               </div>
-              <h3 className="mb-1 font-heading font-semibold">{f.title}</h3>
+              <h3 className="mb-1 font-heading text-lg font-semibold">{f.title}</h3>
               <p className="text-sm text-text-secondary">{f.desc}</p>
             </motion.div>
           ))}
@@ -223,9 +248,14 @@ export function LandingPage() {
 
       {/* Cómo funciona */}
       <section id="como-funciona" className="mx-auto max-w-6xl px-6 py-16">
-        <h2 className="text-center font-heading text-3xl font-bold">Listo en 3 pasos</h2>
-        <p className="mt-2 text-center text-text-secondary">Sin instalaciones complicadas. Tú te enfocas en vender.</p>
+        <SectionHeading title="Listo en 3 pasos" subtitle="Sin instalaciones complicadas. Tú te enfocas en vender." />
         <div className="relative mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
+          {/* Línea conectora del stepper (detrás de los números, solo en desktop).
+              Se alinea con el centro vertical de los cuadritos (h-14 → 28px = top-7). */}
+          <div
+            aria-hidden
+            className="absolute left-0 right-0 top-7 hidden h-px bg-gradient-to-r from-transparent via-primary/45 to-transparent md:block"
+          />
           {STEPS.map((s, i) => (
             <motion.div
               key={s.n}
@@ -235,7 +265,8 @@ export function LandingPage() {
               transition={{ duration: 0.4, delay: i * 0.1 }}
               className="relative text-center"
             >
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-secondary font-heading text-xl font-bold text-white shadow-lg shadow-primary/20">
+              {/* Número en "cuadrito" con degradado de marca para que se vea el orden */}
+              <div className="relative z-10 mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-gradient-to-br from-primary to-secondary font-heading text-xl font-bold text-white shadow-lg shadow-primary/30">
                 {s.n}
               </div>
               <h3 className="mt-5 font-heading text-lg font-semibold">{s.title}</h3>
@@ -247,7 +278,7 @@ export function LandingPage() {
 
       {/* Testimonios */}
       <section className="mx-auto max-w-6xl px-6 py-12">
-        <h2 className="text-center font-heading text-3xl font-bold">Negocios que ya venden con IA</h2>
+        <SectionHeading title="Negocios que ya venden con IA" />
         <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
           {TESTIMONIALS.map((t, i) => (
             <motion.div
@@ -256,7 +287,7 @@ export function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.08 }}
-              className="card-base flex flex-col"
+              className="glass-card flex flex-col"
             >
               <div className="mb-3 flex text-warning">
                 {[0, 1, 2, 3, 4].map((s) => (
@@ -275,22 +306,25 @@ export function LandingPage() {
 
       {/* Pricing */}
       <section id="planes" className="mx-auto max-w-6xl px-6 py-16">
-        <h2 className="mb-2 text-center font-heading text-3xl font-bold">Planes simples y transparentes</h2>
-        <p className="mb-10 text-center text-text-secondary">Sin permanencia. Cancela cuando quieras.</p>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {PLANS.map((plan) => (
-            <div
+        <SectionHeading title="Planes simples y transparentes" subtitle="Sin permanencia. Cancela cuando quieras." />
+        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {PLANS.map((plan, i) => (
+            <motion.div
               key={plan.name}
-              className={`card-base flex flex-col ${plan.highlight ? 'border-primary shadow-xl shadow-primary/10 ring-1 ring-primary md:-translate-y-2' : ''}`}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.06 }}
+              className={`glass-card flex flex-col ${plan.highlight ? 'shadow-2xl shadow-primary/20 ring-2 ring-primary md:-translate-y-2' : ''}`}
             >
               {plan.highlight && (
-                <span className="mb-2 self-start rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-white">
+                <span className="mb-2 self-start rounded-full bg-gradient-to-r from-primary to-secondary px-2.5 py-0.5 text-xs font-semibold text-white">
                   Más popular
                 </span>
               )}
               <h3 className="font-heading text-xl font-bold">{plan.name}</h3>
               <div className="my-3">
-                <span className="text-3xl font-bold">S/ {plan.price}</span>
+                <span className="text-3xl font-extrabold">S/ {plan.price}</span>
                 <span className="text-sm text-text-secondary">/mes</span>
               </div>
               <ul className="mb-6 flex-1 space-y-2">
@@ -302,11 +336,11 @@ export function LandingPage() {
               </ul>
               <Link
                 to={`/register?plan=${plan.name.toLowerCase()}`}
-                className={plan.highlight ? 'btn-primary justify-center' : 'rounded-lg border border-border px-4 py-2 text-center text-sm font-semibold hover:bg-text-primary/5'}
+                className={plan.highlight ? 'btn-gradient justify-center' : 'rounded-xl border border-border px-4 py-2 text-center text-sm font-semibold transition hover:border-primary/50 hover:bg-text-primary/5'}
               >
                 Elegir {plan.name}
               </Link>
-            </div>
+            </motion.div>
           ))}
         </div>
         <p className="mt-4 text-center text-xs text-text-secondary">Todos los planes incluyen 14 días de prueba gratis. Límites mensuales sujetos a política de uso justo.</p>
@@ -314,12 +348,13 @@ export function LandingPage() {
 
       {/* CTA final */}
       <section className="mx-auto max-w-5xl px-6 py-16">
-        <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/15 via-card to-secondary/10 px-8 py-14 text-center">
-          <h2 className="font-heading text-3xl font-bold md:text-4xl">¿Listo para automatizar tu negocio?</h2>
+        <div className="relative overflow-hidden rounded-3xl border border-primary/30 px-8 py-14 text-center">
+          <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/25 via-secondary/10 to-transparent" />
+          <h2 className="font-heading text-3xl font-extrabold md:text-4xl">¿Listo para automatizar tu negocio?</h2>
           <p className="mx-auto mt-3 max-w-lg text-text-secondary">
             Empieza hoy y ten tu agente IA atendiendo en minutos. 14 días gratis, sin tarjeta.
           </p>
-          <Link to="/register" className="btn-primary mt-7 inline-flex px-6 py-3 text-base">
+          <Link to="/register" className="btn-gradient mt-7 inline-flex px-6 py-3 text-base">
             Crear mi cuenta <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -329,18 +364,76 @@ export function LandingPage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-6 text-center">
           <Logo size={32} showText textClassName="text-lg" />
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-text-secondary">
-            <Link to="/privacidad" className="hover:text-text-primary">Política de Privacidad</Link>
+            <Link to="/privacidad" className="transition hover:text-text-primary">Política de Privacidad</Link>
             <span className="opacity-40">·</span>
-            <Link to="/terminos" className="hover:text-text-primary">Términos y Condiciones</Link>
+            <Link to="/terminos" className="transition hover:text-text-primary">Términos y Condiciones</Link>
           </div>
           <p className="text-sm text-text-secondary">
-            © {new Date().getFullYear()} AgentePro — Hecho con 💚 por Italo Eduardo Reyes Cordero · Perú 🇵🇪
+            © {new Date().getFullYear()} AgentePro — Hecho con 💜 por Italo Eduardo Reyes Cordero · Perú 🇵🇪
           </p>
           <p className="text-xs text-text-secondary/70">
             Todos los derechos reservados. Software protegido por Derecho de Autor (D. Leg. N.º 822).
           </p>
         </div>
       </footer>
+    </div>
+  )
+}
+
+/** Encabezado de sección reutilizable. */
+function SectionHeading({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4 }}
+      className="text-center"
+    >
+      <h2 className="font-heading text-3xl font-extrabold md:text-4xl">{title}</h2>
+      {subtitle && <p className="mx-auto mt-2 max-w-xl text-text-secondary">{subtitle}</p>}
+    </motion.div>
+  )
+}
+
+/** Botón para alternar modo claro/oscuro (usa el store global de tema). */
+function ThemeToggle() {
+  const mode = useThemeStore((s) => s.mode)
+  const toggleMode = useThemeStore((s) => s.toggleMode)
+  const isDark = mode === 'dark'
+  return (
+    <button
+      type="button"
+      onClick={toggleMode}
+      aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-text-secondary transition hover:border-primary/50 hover:text-text-primary"
+    >
+      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </button>
+  )
+}
+
+/** Etiquetas flotantes alrededor del celular (solo desktop). */
+function FloatingChips() {
+  const reduce = useReducedMotion()
+  const chips = [
+    { icon: CalendarCheck, label: 'Cita agendada', cls: 'left-0 top-10', delay: 0 },
+    { icon: TrendingUp, label: '+40% más leads', cls: 'left-2 bottom-16', delay: 0.4 },
+    { icon: Zap, label: '< 3s respuesta', cls: 'right-0 top-24', delay: 0.8 },
+  ]
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 hidden lg:block">
+      {chips.map((c) => (
+        <motion.div
+          key={c.label}
+          className={`glass-card absolute flex items-center gap-2 px-3 py-2 text-xs font-semibold shadow-xl ${c.cls}`}
+          animate={reduce ? undefined : { y: [0, -10, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: c.delay }}
+        >
+          <c.icon className="h-4 w-4 text-primary" />
+          {c.label}
+        </motion.div>
+      ))}
     </div>
   )
 }
@@ -378,13 +471,20 @@ function PhoneDemo() {
   }, [scene])
 
   return (
-    <div className="w-full max-w-[290px]">
-      {/* Marco del celular */}
-      <div className="relative rounded-[2.6rem] border border-white/10 bg-neutral-900 p-2.5 shadow-2xl shadow-primary/20">
-        {/* Notch / isla dinámica */}
-        <div className="absolute left-1/2 top-2.5 z-20 h-5 w-24 -translate-x-1/2 rounded-b-2xl bg-neutral-900" />
-        {/* Pantalla */}
-        <div className="relative h-[500px] overflow-hidden rounded-[2.1rem] bg-black">
+    <div className="relative z-10 w-full max-w-[290px]">
+      {/* Marco del celular — Glassmorphism */}
+      <div className="glass-phone relative p-3">
+        {/* Botones laterales (volumen / encendido) sobre el filo del marco */}
+        <span aria-hidden className="absolute -left-[2.5px] top-24 h-7 w-[3px] rounded-l-sm bg-white/15" />
+        <span aria-hidden className="absolute -left-[2.5px] top-[8.5rem] h-11 w-[3px] rounded-l-sm bg-white/15" />
+        <span aria-hidden className="absolute -right-[2.5px] top-32 h-16 w-[3px] rounded-r-sm bg-white/15" />
+        {/* Pantalla (hundida: sombra interior + esquinas curvas) */}
+        <div className="relative h-[500px] overflow-hidden rounded-[2rem] bg-black shadow-[inset_0_0_2px_1px_rgba(255,255,255,0.08)]">
+          {/* Dynamic Island */}
+          <div className="absolute left-1/2 top-2.5 z-30 flex h-7 w-24 -translate-x-1/2 items-center justify-end gap-1.5 rounded-full bg-black pr-2.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
+            <span className="h-1 w-1 rounded-full bg-sky-400/40" />
+          </div>
           <AnimatePresence mode="wait">
             {scene === 'chat' ? (
               <motion.div
@@ -410,6 +510,12 @@ function PhoneDemo() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Reflejo de cristal fijo (sutil, diagonal) */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-br from-white/10 via-transparent to-transparent"
+          />
         </div>
       </div>
       <p className="mt-3 text-center text-xs text-text-secondary">
@@ -420,10 +526,9 @@ function PhoneDemo() {
 }
 
 /** Barra de estado del teléfono (hora, señal, wifi, batería). */
-function StatusBar({ light = false }: { light?: boolean }) {
-  const c = light ? 'text-white' : 'text-white'
+function StatusBar() {
   return (
-    <div className={`flex items-center justify-between px-5 pt-2 pb-1 text-[11px] font-medium ${c}`}>
+    <div className="flex items-center justify-between px-5 pt-2 pb-1 text-[11px] font-medium text-white">
       <span>9:41</span>
       <div className="flex items-center gap-1">
         <Signal className="h-3 w-3" />
@@ -549,19 +654,16 @@ function CallScene() {
 
         {/* Onda de voz animada */}
         <div className="flex items-end gap-1.5">
-          {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <motion.span
-              key={i}
-              className="w-1.5 rounded-full bg-white/80"
-              animate={{ height: [8, 26, 12, 30, 10] }}
-              transition={{
-                duration: 1.1,
-                repeat: Infinity,
-                delay: i * 0.09,
-                ease: 'easeInOut',
-              }}
-            />
-          ))}
+          {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => {
+            const anims = ['animate-voice-bar-1', 'animate-voice-bar-2', 'animate-voice-bar-3']
+            return (
+              <span
+                key={i}
+                className={`neon-bar w-1.5 rounded-full ${anims[i % 3]}`}
+                style={{ animationDelay: `${i * 0.09}s`, height: 8 }}
+              />
+            )
+          })}
         </div>
 
         {/* Botones de llamada */}

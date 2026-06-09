@@ -26,6 +26,27 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      reportsDirectory: 'coverage',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/main.tsx',
+        'src/App.tsx',
+        'src/router.tsx',
+        'src/vite-env.d.ts',
+        'src/**/*.d.ts',
+        'src/pages/**',
+        'src/components/common/AnimatedBackground.tsx',
+        'src/components/landing/ParticleField.tsx',
+        'src/**/*.test.{ts,tsx}',
+        'src/test/**',
+        '**/*.config.*',
+      ],
+    },
   },
 })

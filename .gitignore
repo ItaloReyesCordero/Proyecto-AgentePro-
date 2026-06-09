@@ -25,8 +25,12 @@ venv/
 .ruff_cache/
 .pytest_cache/
 .coverage
+coverage.xml
 htmlcov/
 coverage/
+
+# ==== SonarQube (reportes/locks locales del scanner) ====
+.scannerwork/
 *.db
 *.sqlite
 *.sqlite3
@@ -59,3 +63,6 @@ Thumbs.db
 
 # Runtime de Celery beat (no versionar)
 celerybeat-schedule*
+
+# Artefactos de capturas de Playwright (MCP)
+.playwright-mcp/

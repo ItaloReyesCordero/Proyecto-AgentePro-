@@ -71,7 +71,7 @@ class AIAgentService:
         text = ACTION_PATTERN.sub("", text)
         return text.strip()
 
-    async def _check_plan_limit(self, tenant: Tenant) -> None:
+    def _check_plan_limit(self, tenant: Tenant) -> None:
         limit = message_limit(tenant.plan)
         used = tenant.messages_used_this_month or 0
         if used >= limit:
@@ -108,7 +108,7 @@ class AIAgentService:
         agent_config: AgentConfig,
         db: AsyncSession,
     ) -> AgentResponse:
-        await self._check_plan_limit(tenant)
+        self._check_plan_limit(tenant)
 
         # Adaptar contenido por tipo
         if message_type == "audio":

@@ -1,0 +1,35 @@
+# Evita que un COPY recursivo arrastre secretos o basura al contexto/imagen.
+# Secretos / configuración local
+.env
+.env.*
+*.env
+# Control de versiones
+.git
+.gitignore
+# Cachés y artefactos de Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.venv/
+venv/
+# Bases de datos / dumps locales
+*.sqlite
+*.sqlite3
+*.db
+# Datos de pruebas y reportes de análisis
+tests/data/
+.scannerwork/
+# Runtime de Celery beat
+celerybeat-schedule*
+# IDE / SO
+.vscode/
+.idea/
+*.log
+.DS_Store

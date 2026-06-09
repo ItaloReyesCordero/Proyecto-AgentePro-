@@ -299,7 +299,24 @@ async def global_costs(_: AdminGuard, db: DbSession) -> dict[str, float | int]:
 
 
 @router.get("/health")
-async def services_health(_: AdminGuard) -> dict[str, bool]:
+async def services_health(_: AdminGuard, db: DbSession) -> dict[str, bool]:
+    # Instagram y Notion no usan una API key global del backend: cada negocio
+    # conecta la suya (token cifrado en su tenant). Por eso aquí mostramos ✓ si
+    # al menos un negocio las tiene conectadas, no una variable de entorno.
+    instagram_connected = await db.scalar(
+        select(func.count())
+        .select_from(Tenant)
+        .where(Tenant.instagram_access_token.isnot(None))
+        .where(Tenant.instagram_access_token != "")
+        .where(Tenant.instagram_account_id.isnot(None))
+    )
+    notion_connected = await db.scalar(
+        select(func.count())
+        .select_from(Tenant)
+        .where(Tenant.notion_api_key.isnot(None))
+        .where(Tenant.notion_api_key != "")
+        .where(Tenant.notion_database_id.isnot(None))
+    )
     return {
         "anthropic": bool(settings.ANTHROPIC_API_KEY),
         "meta_whatsapp": bool(settings.META_APP_SECRET),
@@ -309,6 +326,8 @@ async def services_health(_: AdminGuard) -> dict[str, bool]:
         "culqi": bool(settings.CULQI_SECRET_KEY),
         "resend": bool(settings.RESEND_API_KEY),
         "fal": bool(settings.FAL_KEY),
+        "instagram": bool(instagram_connected),
+        "notion": bool(notion_connected),
     }
 
 

@@ -50,7 +50,7 @@ export function TopBar() {
   }
 
   return (
-    <header className="flex items-center justify-between h-14 px-6 border-b border-border bg-surface/80 backdrop-blur-xl flex-shrink-0">
+    <header className="sticky top-0 z-30 flex items-center justify-between h-14 px-6 border-b border-border bg-surface/80 backdrop-blur-xl flex-shrink-0 shadow-sm shadow-black/5">
       <div className="flex items-center gap-4">
         <h1 className="font-heading font-semibold text-lg text-text-primary">
           {pageTitle}
@@ -81,7 +81,16 @@ export function TopBar() {
           <>
             <div
               className="fixed inset-0 z-40"
+              role="button"
+              tabIndex={0}
+              aria-label="Cerrar menú"
               onClick={() => setDropdownOpen(false)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setDropdownOpen(false)
+                }
+              }}
             />
             <div
               className={cn(

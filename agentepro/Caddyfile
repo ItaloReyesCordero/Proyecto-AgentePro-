@@ -14,9 +14,10 @@
 		reverse_proxy backend:8000
 	}
 
-	# El resto: la aplicación web (React).
+	# El resto: la aplicación web (React). nginx corre como no-root y escucha en
+	# el puerto 8080 (imagen nginx-unprivileged; ver frontend/Dockerfile).
 	handle {
-		reverse_proxy frontend:80
+		reverse_proxy frontend:8080
 	}
 
 	tls {$ACME_EMAIL}

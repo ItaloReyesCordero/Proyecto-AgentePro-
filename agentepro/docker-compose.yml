@@ -87,6 +87,11 @@ services:
     env_file: ./frontend/.env
     environment:
       VITE_PROXY_TARGET: http://backend:8000
+      # En Windows + Docker los eventos de archivos no cruzan el bind mount, así
+      # que el HMR no detecta cambios. El polling hace que Vite (chokidar) revise
+      # los archivos por tiempo y el hot-reload vuelva a funcionar sin reiniciar.
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "300"
     volumes:
       - ./frontend/src:/app/src
       # Montamos también public e index.html para que el logo (SVG), el favicon

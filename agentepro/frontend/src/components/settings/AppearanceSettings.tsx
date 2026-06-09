@@ -72,17 +72,16 @@ export function AppearanceSettings() {
             className="flex h-8 cursor-pointer items-center gap-2 rounded-full border border-border px-3 text-xs text-text-secondary hover:border-text-secondary/40"
             title="Color personalizado"
           >
-            <span
-              className="h-4 w-4 rounded-full border border-border"
-              style={{ backgroundColor: current }}
-            />
-            Personalizado
             <input
               type="color"
               value={current}
               onChange={(e) => setBrandColor(e.target.value)}
               className="sr-only"
             />
+            <span
+              className="h-4 w-4 rounded-full border border-border"
+              style={{ backgroundColor: current }}
+            />Personalizado
           </label>
 
           {brandColor && (

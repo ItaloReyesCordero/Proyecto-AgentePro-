@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { MessageSquare, Users, Phone, Flame, TrendingUp, TrendingDown } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, animate, useMotionValue, useTransform, useReducedMotion } from 'framer-motion'
 import {
   Area,
   AreaChart,
@@ -38,6 +38,24 @@ function useBrandRgb(): string {
     // Recalcula cuando cambia el tema o el color de marca.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, brand])
+}
+
+/** Número que cuenta de 0 hasta `value` al montar (efecto premium en los KPIs). */
+function AnimatedNumber({ value }: { value: number }) {
+  const reduce = useReducedMotion()
+  const mv = useMotionValue(0)
+  const text = useTransform(mv, (v) => Math.round(v).toLocaleString('es-PE'))
+
+  useEffect(() => {
+    if (reduce) {
+      mv.set(value)
+      return
+    }
+    const controls = animate(mv, value, { duration: 0.9, ease: 'easeOut' })
+    return () => controls.stop()
+  }, [value, reduce, mv])
+
+  return <motion.span>{text}</motion.span>
 }
 
 const container = {
@@ -212,8 +230,8 @@ function KpiCard({ icon: Icon, label, value, change, color, iconBg, loading }: K
           </span>
         )}
       </div>
-      <p className="font-heading text-2xl font-bold text-text-primary">
-        {value.toLocaleString('es-PE')}
+      <p className="font-heading text-2xl font-bold tabular-nums text-text-primary">
+        <AnimatedNumber value={value} />
       </p>
       <p className="text-xs text-text-secondary">{label}</p>
     </motion.div>

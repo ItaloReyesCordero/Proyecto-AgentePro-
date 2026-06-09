@@ -60,6 +60,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(TenantMiddleware)
+app.add_middleware(RateLimitMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
+# CORSMiddleware debe añadirse el ÚLTIMO: Starlette ejecuta el último
+# add_middleware como el más externo, de modo que las respuestas (incluidos los
+# preflight OPTIONS y los errores) llevan siempre las cabeceras CORS.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.FRONTEND_URL],
@@ -67,9 +73,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.add_middleware(TenantMiddleware)
-app.add_middleware(RateLimitMiddleware)
-app.add_middleware(RequestLoggingMiddleware)
 setup_exception_handlers(app)
 
 # REST API

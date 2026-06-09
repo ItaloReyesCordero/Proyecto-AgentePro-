@@ -1,6 +1,27 @@
 from __future__ import annotations
-from pydantic import model_validator
+
+import os
+
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _default_database_url() -> str:
+    """Construye la DATABASE_URL por defecto a partir de componentes del entorno.
+
+    No incrusta credenciales en el código fuente: usuario/clave/host/puerto/db se
+    leen de variables de entorno (las mismas que define docker-compose para el
+    contenedor de Postgres en desarrollo). En PRODUCCIÓN (Railway) se define
+    DATABASE_URL directamente y este default ni se usa. En tests, conftest fuerza
+    una URL de SQLite antes de importar la app.
+    """
+    user = os.environ.get("POSTGRES_USER", "postgres")
+    password = os.environ.get("POSTGRES_PASSWORD", "")
+    host = os.environ.get("POSTGRES_HOST", "localhost")
+    port = os.environ.get("POSTGRES_PORT", "5432")
+    db = os.environ.get("POSTGRES_DB", "agentepro")
+    auth = f"{user}:{password}@" if password else f"{user}@"
+    return f"postgresql+asyncpg://{auth}{host}:{port}/{db}"
 
 
 class Settings(BaseSettings):
@@ -8,24 +29,30 @@ class Settings(BaseSettings):
     VERSION: str = "2.0.0"
     ENVIRONMENT: str = "development"
     DEBUG: bool = False
-    SECRET_KEY: str = "dev-secret-key-change-in-production"
+    # IMPORTANTE: en PRODUCCIÓN estos secretos DEBEN venir por variable de entorno
+    # (SECRET_KEY, ADMIN_SECRET_KEY). El fallback de abajo es solo para arrancar en
+    # desarrollo local y NO debe usarse en producción.
+    SECRET_KEY: str = Field(default_factory=lambda: os.environ.get("SECRET_KEY", "local-dev-only-change-me"))
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
-    ADMIN_SECRET_KEY: str = "dev-admin-secret"
+    ADMIN_SECRET_KEY: str = Field(default_factory=lambda: os.environ.get("ADMIN_SECRET_KEY", "local-dev-only-change-me"))
     FRONTEND_URL: str = "http://localhost:5173"
 
     # Super admin (cuenta del fundador). Se siembra al arrancar si no existe.
+    # IMPORTANTE: define SUPERADMIN_PASSWORD por entorno en producción.
     SUPERADMIN_EMAIL: str = "admin@agentepro.pe"
-    SUPERADMIN_PASSWORD: str = "superadmin123"
+    SUPERADMIN_PASSWORD: str = Field(default_factory=lambda: os.environ.get("SUPERADMIN_PASSWORD", "local-dev-only-change-me"))
     SUPERADMIN_NAME: str = "Super Admin"
 
     # Permite registro self-service sin pago real (cobro simulado mientras no
     # haya CULQI_SECRET_KEY). En producción con Culqi real, exige token de pago.
     ALLOW_FREE_SIGNUP: bool = True
 
-    DATABASE_URL: str = "postgresql+asyncpg://agentepro:agentepro_dev@localhost:5432/agentepro"
-    DATABASE_URL_SYNC: str = "postgresql://agentepro:agentepro_dev@localhost:5432/agentepro"
+    # En producción (Railway) se define DATABASE_URL por entorno; en desarrollo se
+    # arma a partir de POSTGRES_* (sin credenciales literales en el código).
+    DATABASE_URL: str = Field(default_factory=_default_database_url)
+    DATABASE_URL_SYNC: str = Field(default_factory=lambda: _default_database_url().replace("+asyncpg", "+psycopg2"))
 
     REDIS_URL: str = "redis://localhost:6379/0"
 

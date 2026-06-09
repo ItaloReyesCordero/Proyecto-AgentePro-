@@ -429,15 +429,18 @@ export function AdminPage() {
                   <span
                     key={name}
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      ok ? 'border border-primary/30 bg-primary/10 text-primary' : 'border border-border bg-background text-text-secondary'
+                      ok
+                        ? 'border border-primary/30 bg-primary/10 text-primary'
+                        : 'border border-red-500/40 bg-red-500/10 text-red-400'
                     }`}
                   >
-                    {name} {ok ? '✓' : '—'}
+                    {name} {ok ? '✓' : '✗'}
                   </span>
                 ))}
             </div>
             <p className="mt-3 text-xs text-text-secondary">
-              ✓ = la API key está configurada en el backend. — = falta configurarla (ese servicio no funcionará).
+              ✓ = conectado y listo. <span className="text-red-400">✗</span> = no conectado (ese servicio no funcionará).
+              Instagram y Notion se conectan por negocio desde sus Ajustes.
             </p>
           </section>
         </div>
@@ -477,8 +480,8 @@ export function AdminPage() {
             >
               <Input label="Nombre del negocio" value={form.business_name} onChange={(v) => updateForm('business_name', v)} required />
               <div>
-                <label className="mb-1 block text-xs font-medium text-text-secondary">Tipo</label>
-                <select value={form.business_type} onChange={(e) => updateForm('business_type', e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm text-text-primary outline-none focus:border-primary">
+                <label htmlFor="create-tenant-type" className="mb-1 block text-xs font-medium text-text-secondary">Tipo</label>
+                <select id="create-tenant-type" value={form.business_type} onChange={(e) => updateForm('business_type', e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm text-text-primary outline-none focus:border-primary">
                   {BUSINESS_TYPES.map((b) => <option key={b} value={b}>{b}</option>)}
                 </select>
               </div>
@@ -486,8 +489,8 @@ export function AdminPage() {
               <Input label="Email del dueño" type="email" value={form.owner_email} onChange={(v) => updateForm('owner_email', v)} required />
               <Input label="Teléfono del dueño" value={form.owner_phone} onChange={(v) => updateForm('owner_phone', v)} required />
               <div>
-                <label className="mb-1 block text-xs font-medium text-text-secondary">Plan</label>
-                <select value={form.plan} onChange={(e) => updateForm('plan', e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm text-text-primary outline-none focus:border-primary">
+                <label htmlFor="create-tenant-plan" className="mb-1 block text-xs font-medium text-text-secondary">Plan</label>
+                <select id="create-tenant-plan" value={form.plan} onChange={(e) => updateForm('plan', e.target.value)} className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm text-text-primary outline-none focus:border-primary">
                   {PLANS.map((p) => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
@@ -913,9 +916,22 @@ function PasswordModal({ result, onClose }: { result: ResetResult; onClose: () =
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      role="button"
+      tabIndex={0}
+      aria-label="Cerrar"
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onClose()
+        }
+      }}
+    >
       <div
         className="w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card p-6 text-center"
+        role="presentation"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/15 text-primary">
@@ -1014,8 +1030,20 @@ function WebhookLogsModal({ tenant, onClose }: { tenant: Tenant; onClose: () => 
   })
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="max-h-[80vh] w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-card" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      role="button"
+      tabIndex={0}
+      aria-label="Cerrar"
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onClose()
+        }
+      }}
+    >
+      <div className="max-h-[80vh] w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-card" role="presentation" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-border px-5 py-3">
           <h3 className="font-heading font-semibold text-text-primary">Logs de webhooks · {tenant.name}</h3>
           <button onClick={onClose} className="text-text-secondary hover:text-text-primary">

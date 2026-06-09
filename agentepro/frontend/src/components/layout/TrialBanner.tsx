@@ -39,8 +39,7 @@ export function TrialBanner() {
           Tu prueba gratuita termina en{' '}
           <strong>
             {daysLeft} día{daysLeft === 1 ? '' : 's'}
-          </strong>
-          . Paga tu primera mensualidad para no perder el servicio.
+          </strong>. Paga tu primera mensualidad para no perder el servicio.
         </Bar>
       )
     }
@@ -62,8 +61,7 @@ export function TrialBanner() {
       {isTrial ? 'Tu prueba gratuita' : 'Tu mensualidad'} vence en{' '}
       <strong>
         {Math.max(daysLeft, 0)} día{daysLeft === 1 ? '' : 's'}
-      </strong>
-      . Paga por adelantado para seguir atendiendo 24/7.
+      </strong>. Paga por adelantado para seguir atendiendo 24/7.
     </Bar>
   )
 }
